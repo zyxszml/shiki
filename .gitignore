@@ -1,0 +1,19 @@
+# Screen recordings & large media
+Screenrecorder-*.mp4
+
+# OS & editor artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependencies, logs & temporary files
+node_modules/
+*.log
+tmp/
+.tmp/
+temp/
+scratch/

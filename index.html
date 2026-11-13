@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>隙间琉璃 · SHIKI — 时间 · 情绪 · 空间</title>
+  <meta name="description" content="以实时 WebGL2 液态玻璃折射、流体弹簧物理与多维声景呈现「时间变换 · 情绪变换 · 空间变换」三大奇想维度的交互式光学胶囊。">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f2b8a0'/%3E%3Cstop offset='50%25' stop-color='%2364d2c8'/%3E%3Cstop offset='100%25' stop-color='%238aa4ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='6' y='16' width='52' height='32' rx='16' fill='url(%23g)'/%3E%3Crect x='22' y='10' width='20' height='44' rx='10' fill='rgba(255,255,255,0.42)' stroke='%23ffffff' stroke-width='2.5'/%3E%3C/svg%3E">
+
+  <!-- 内联关键防闪烁初始化脚本：在首帧绘制前同步主题与 color-scheme -->
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem('shiki-theme');
+        if (saved === 'dark' || saved === 'light') {
+          document.documentElement.dataset.theme = saved;
+          const meta = document.querySelector('meta[name="color-scheme"]');
+          if (meta) meta.setAttribute('content', saved);
+        }
+      } catch (_) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 全屏随维度与阶段柔和呼吸的环境光晕层（纯粹装饰，对辅助技术隐藏） -->
+  <div class="ambient-backdrop" aria-hidden="true"></div>
+
+  <!-- 极简画廊顶部导航 -->
+  <header class="site-header">
+    <div class="brand-lockup">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-name" id="brand-name">SHIKI · 隙间琉璃</span>
+    </div>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        id="lang-toggle"
+        class="icon-pill-btn"
+        aria-label="切换中英文界面 / Switch language"
+        title="切换语言 / Switch Language"
+      >
+        <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M3.6 9h16.8M3.6 15h16.8"/>
+          <path d="M12 3a13.5 13.5 0 0 0 0 18M12 3a13.5 13.5 0 0 1 0 18"/>
+        </svg>
+        <span class="btn-label" id="lang-label">EN</span>
+      </button>
+
+      <button
+        type="button"
+        id="zen-toggle"
+        class="icon-pill-btn zen-toggle-btn"
+        aria-pressed="false"
+        aria-label="切换纯净鉴赏模式（快捷键 Z）"
+        title="纯净鉴赏模式 (Z)"
+      >
+        <svg class="icon-svg zen-icon-enter" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9V5h4"/>
+          <path d="M20 9V5h-4"/>
+          <path d="M4 15v4h4"/>
+          <path d="M20 15v4h-4"/>
+          <circle cx="12" cy="12" r="2.2"/>
+        </svg>
+        <svg class="icon-svg zen-icon-exit" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4v4H4"/>
+          <path d="M16 4v4h4"/>
+          <path d="M8 20v-4H4"/>
+          <path d="M16 20v-4h4"/>
+          <circle cx="12" cy="12" r="1.8"/>
+        </svg>
+        <span class="btn-label" id="zen-label">纯净鉴赏</span>
+      </button>
+
+      <button
+        type="button"
+        id="theme-toggle"
+        class="icon-pill-btn"
+        aria-label="切换浅色或深色画廊氛围"
+      >
+        <svg class="icon-svg theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+        <svg class="icon-svg theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span class="btn-label" id="theme-label">夜幕</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content" class="stage-main">
+    <!-- 三大奇想维度分段导航 -->
+    <nav class="dimension-switcher" aria-label="变换维度切换">
+      <button type="button" class="dim-btn is-selected" data-dim="time" aria-pressed="true">
+        <span class="dim-dot" aria-hidden="true"></span>
+        <span class="dim-label">时间变换</span>
+        <span class="dim-code" aria-hidden="true">CHRONOS</span>
+      </button>
+      <button type="button" class="dim-btn" data-dim="mood" aria-pressed="false">
+        <span class="dim-dot" aria-hidden="true"></span>
+        <span class="dim-label">情绪变换</span>
+        <span class="dim-code" aria-hidden="true">PSYCHE</span>
+      </button>
+      <button type="button" class="dim-btn" data-dim="space" aria-pressed="false">
+        <span class="dim-dot" aria-hidden="true"></span>
+        <span class="dim-label">空间变换</span>
+        <span class="dim-code" aria-hidden="true">COSMOS</span>
+      </button>
+    </nav>
+
+    <!-- 诗意展签头部：维界题名、阶段徽章、吟咏诗句与稳定窥镜指示位 -->
+    <section class="poetic-header" aria-labelledby="hero-title">
+      <h1 id="hero-title" class="hero-title">千年一瞬，掌中折叠</h1>
+      <p id="stage-subtitle" class="stage-subtitle" aria-live="polite">
+        <span class="stage-badge" id="stage-badge">太初 · 神庙晨曦</span>
+        <span class="stage-verse" id="stage-verse">青铜火盆燃初曙，苍柏悬崖听远潮</span>
+      </p>
+      <div class="portal-slot">
+        <span class="portal-pill" id="portal-pill" hidden aria-live="polite">
+          <span class="portal-dot" aria-hidden="true"></span>
+          <span class="portal-prefix" id="portal-prefix">镜中未来</span>
+          <strong class="portal-name" id="portal-name">盛世 · 鎏金港城</strong>
+        </span>
+      </div>
+    </section>
+
+    <!-- 核心视觉主体：液态玻璃交互胶囊舞台 -->
+    <section class="capsule-showcase" aria-label="隙间琉璃液态玻璃交互画框">
+      <!-- WebGL2 光学折射画布 + 回退画布包装层，含完整包裹耳部的键盘焦点环 -->
+      <div class="lens-stage-wrapper" id="lens-stage-wrapper">
+        <div class="capsule-focus-ring" aria-hidden="true"></div>
+        <canvas
+          id="lens-canvas"
+          class="lens-canvas"
+          aria-hidden="true"
+        ></canvas>
+
+        <!-- 严格采用原生 <input type="range"> 保障键盘、触控及读屏器原生无障碍体验 -->
+        <label for="season-slider" id="slider-aria-label" class="visually-hidden">
+          滑动调节当前维度四阶流转进度
+        </label>
+        <input
+          type="range"
+          id="season-slider"
+          class="native-season-slider"
+          min="0"
+          max="1000"
+          step="1"
+          value="0"
+          aria-valuetext="太初 · 神庙晨曦 (0%)"
+          aria-describedby="slider-hint"
+        >
+
+        <!-- 悬浮微缩交互提示（首次交互后淡出，避免干扰纯粹视效） -->
+        <p id="slider-hint" class="interaction-hint">
+          拖拽琉璃滑块 · 拨动即享惯性时光流转（方向键 / Z 纯净模式）
+        </p>
+      </div>
+
+      <!-- 四阶快捷锚点刻度 -->
+      <nav class="stage-ticks" aria-label="四阶节点快速定位">
+        <button type="button" class="tick-btn is-active" data-stage="0" data-progress="0">
+          <span class="tick-dot" aria-hidden="true"></span>
+          <span class="tick-cn">太初</span>
+          <span class="tick-en">Dawn</span>
+        </button>
+        <button type="button" class="tick-btn" data-stage="1" data-progress="0.3333">
+          <span class="tick-dot" aria-hidden="true"></span>
+          <span class="tick-cn">盛世</span>
+          <span class="tick-en">Golden</span>
+        </button>
+        <button type="button" class="tick-btn" data-stage="2" data-progress="0.6667">
+          <span class="tick-dot" aria-hidden="true"></span>
+          <span class="tick-cn">赛博</span>
+          <span class="tick-en">Neon</span>
+        </button>
+        <button type="button" class="tick-btn" data-stage="3" data-progress="1">
+          <span class="tick-dot" aria-hidden="true"></span>
+          <span class="tick-cn">星海</span>
+          <span class="tick-en">Astral</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- 底部极简控制坞：光学模式、自动巡游、多维声景、光学与物理微调 -->
+    <div class="control-dock" role="region" aria-label="体验控制栏">
+      <div class="segmented-control" role="group" aria-label="光学透镜模式">
+        <button
+          type="button"
+          class="seg-btn is-selected"
+          id="mode-refract"
+          data-mode="refract"
+          aria-pressed="true"
+        >
+          <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="3" width="12" height="18" rx="6"/>
+            <path d="M10 8c0 3 1 5 4 8"/>
+          </svg>
+          <span id="mode-refract-label">同期流转</span>
+        </button>
+        <button
+          type="button"
+          class="seg-btn"
+          id="mode-portal"
+          data-mode="portal"
+          aria-pressed="false"
+        >
+          <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8.5"/>
+            <circle cx="12" cy="12" r="3.5"/>
+            <path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2"/>
+          </svg>
+          <span id="mode-portal-label">跨世窥镜</span>
+        </button>
+      </div>
+
+      <span class="dock-divider" aria-hidden="true"></span>
+
+      <button type="button" id="tour-toggle" class="dock-btn">
+        <svg class="icon-svg tour-icon-play" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5.14v14l11-7-11-7z"/>
+        </svg>
+        <svg class="icon-svg tour-icon-pause" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 5h4v14H6zm8 0h4v14h-4z"/>
+        </svg>
+        <span id="tour-label">自动巡游</span>
+      </button>
+
+      <button type="button" id="audio-toggle" class="dock-btn">
+        <svg class="icon-svg audio-icon-off" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+        <svg class="icon-svg audio-icon-on" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <span id="audio-label">开启声景</span>
+      </button>
+
+      <button
+        type="button"
+        id="optics-btn"
+        class="dock-btn"
+        popovertarget="optics-popover"
+      >
+        <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="21" x2="4" y2="14"/>
+          <line x1="4" y1="10" x2="4" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12" y2="3"/>
+          <line x1="20" y1="21" x2="20" y2="16"/>
+          <line x1="20" y1="12" x2="20" y2="3"/>
+          <line x1="1" y1="14" x2="7" y2="14"/>
+          <line x1="9" y1="8" x2="15" y2="8"/>
+          <line x1="17" y1="16" x2="23" y2="16"/>
+        </svg>
+        <span id="optics-label">光学微调</span>
+      </button>
+    </div>
+
+    <!-- 原生 HTML Popover 光学物理调节器 -->
+    <div id="optics-popover" popover class="optics-popover" role="dialog" aria-label="液态玻璃光学与物理参数">
+      <div class="popover-head">
+        <h2 class="popover-title" id="optics-title">琉璃光学与物理</h2>
+        <button type="button" id="reset-optics" class="text-reset-btn">还原默认</button>
+      </div>
+      <div class="optics-grid">
+        <div class="optics-row">
+          <div class="optics-label-row">
+            <label for="opt-refraction" id="label-refraction">屈光强度 (Refraction)</label>
+            <output id="val-refraction" for="opt-refraction">1.00</output>
+          </div>
+          <input type="range" id="opt-refraction" class="mini-slider" min="0.2" max="2.0" step="0.05" value="1.0">
+        </div>
+        <div class="optics-row">
+          <div class="optics-label-row">
+            <label for="opt-dispersion" id="label-dispersion">边缘色散 (Dispersion)</label>
+            <output id="val-dispersion" for="opt-dispersion">1.00</output>
+          </div>
+          <input type="range" id="opt-dispersion" class="mini-slider" min="0" max="2.5" step="0.05" value="1.0">
+        </div>
+        <div class="optics-row">
+          <div class="optics-label-row">
+            <label for="opt-magnify" id="label-magnify">透镜放大 (Zoom)</label>
+            <output id="val-magnify" for="opt-magnify">1.08x</output>
+          </div>
+          <input type="range" id="opt-magnify" class="mini-slider" min="1.00" max="1.32" step="0.01" value="1.08">
+        </div>
+        <div class="optics-row">
+          <div class="optics-label-row">
+            <label for="opt-particles" id="label-particles">氛围微粒 (Atmosphere)</label>
+            <output id="val-particles" for="opt-particles">100%</output>
+          </div>
+          <input type="range" id="opt-particles" class="mini-slider" min="0" max="1.5" step="0.05" value="1.0">
+        </div>
+        <div class="optics-row">
+          <div class="optics-label-row">
+            <label for="opt-elasticity" id="label-elasticity">弹性敏感度 (Elasticity)</label>
+            <output id="val-elasticity" for="opt-elasticity">1.00</output>
+          </div>
+          <input type="range" id="opt-elasticity" class="mini-slider" min="0.4" max="1.8" step="0.05" value="1.0">
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-note" id="footer-note">WebGL2 实时折射 · 弹簧流体 · 多维声景</p>
+  </footer>
+
+  <script defer src="assets/time-textures.js"></script>
+  <script defer src="js/dimensions.js"></script>
+  <script defer src="js/spring-physics.js"></script>
+  <script defer src="js/soundscape.js"></script>
+  <script defer src="js/webgl-lens.js"></script>
+  <script defer src="js/main.js"></script>
+</body>
+</html>
